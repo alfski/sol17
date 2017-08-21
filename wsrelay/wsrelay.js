@@ -1,32 +1,32 @@
-// websocket-relay.js
-// cesium-lg/server.js & websocket-relay.pl used as a skeleton //Ali 17433668
-// 25/08/2016 websocket-relay.pl fully converted to javascript/NodeJS
-// Jon Record Function
-// 20161108 Alf strip back refactor - correct broken client id, now user client address + port
+// wsrelay.js
+// from cesium-lg/server.js & websocket-relay.pl used as a skeleton //Ali 17433668
+// 20160825 websocket-relay.pl converted to javascript/NodeJS
+// 20161010 Jon Record Function
+// 20161108 Alf strip back & refactor, correct broken client id, use client address + port
+// 20170820 Alf additional work for WSC Launch Event
 
-var DEBUG = 1;
+var DEBUG = true,
+    HTTP = require('http'),
+    WS = require('ws'),
 
-var http = require('http'),
-    ws = require('ws');
+    CONFIG = {
+      NODE_IP: 'localhost', // not used?
+      NODE_PORT: 3000,
+    };
 
 ( function() {
   'use strict';
 
-  var CONFIG = {
-    NODE_IP: 'localhost',
-    NODE_PORT: 3000,
-  };
+  var httpServer = HTTP.createServer();
 
-  var server = http.createServer();
-
-  server.listen( CONFIG.NODE_PORT, function() {
-    if (DEBUG) console.log("Relay listening on " + CONFIG.NODE_IP + ":" + CONFIG.NODE_PORT);
+  httpServer.listen( CONFIG.NODE_PORT, function() {
+    if (DEBUG) console.log("Relay listening on *:" + CONFIG.NODE_PORT);
   });
 
-  var wsServer = new ws.Server( { server: server } ),
+  var wsServer = new WS.Server( { server: httpServer } ),
       wsClients = new Array(),
       noOfClients = 0,
-      lastMessage, masterClientAddrPort = '';
+      lastMessage, masterClientAddrPort;
 
   wsServer.on( 'connection', function( socket ) {
 
@@ -35,32 +35,53 @@ var http = require('http'),
     noOfClients++;
     wsClients[ clientAddrPort ] = socket;
 
-    if (DEBUG) console.log('New client ' + clientAddrPort + ' ('+ noOfClients+' clients)');
+    if (DEBUG) console.log('New client ' + clientAddrPort + ' ('+ noOfClients +' clients)');
 
     socket.on( 'message', function( messageData, flags ) {
 
-       var type = messageData.substring( 0, messageData.indexOf(',') ),
-           data = messageData.substring( messageData.indexOf(',') + 1, messageData.length );
+       if (DEBUG) console.log( 'Mesg:' + messageData );
 
-       if (DEBUG) console.log( 'Type:' + type + ' Data:' + data );
+       var command = messageData.split(',')[0];
 
-       switch (type) {
+       switch (command) {
          case "MASTER":
 	   masterClientAddrPort = clientAddrPort;
 	   if (DEBUG) console.log( 'Client '+ masterClientAddrPort + ' is declaring master.' );
 	   break;
 
          case "RESEND":
-           wsClients[ clientAddrPort ].send( lastMessage );
+           try { wsClients[ clientAddrPort ].send( lastMessage ); }
+           catch (e) { console.log('resend send error'); }
 	   break;
+
+         case "NOOFCLIENTS": // tell Master the number of connected clients
+           if (DEBUG) console.log( 'NoofClients:' + noOfClients );
+           if (masterClientAddrPort !== undefined) {
+             try { wsClients[masterClientAddrPort].send( noOfClients.toString() ); }
+             catch (e) { console.log('noofclients send error'); }
+           } else {
+             if (DEBUG) console.log( 'Master not defined');
+           }
+           break;
+
+         case "REQUESTSTATE": // only to master
+           if (DEBUG) console.log( 'State Request' );
+           if (masterClientAddrPort !== undefined) {
+             try { wsClients[masterClientAddrPort].send( messageData ); }
+             catch (e) { console.log('requeststate send error'); }
+           } else {
+             if (DEBUG) console.log( 'Master not defined');
+           }
+           break;
 
          default: // do the relay thing
            for (var i in wsClients) {
              if (i != clientAddrPort && i != masterClientAddrPort) { // don't send to self or master
-               //console.log( 'sending to i=' + i );
-               wsClients[i].send( messageData );
+               try { wsClients[i].send( messageData ); }
+               catch (e) { console.log('relay send error'); }
              }
            }
+           lastMessage = messageData;
            break;
        }
    }); // end socket.on 'message'
@@ -73,7 +94,7 @@ var http = require('http'),
 
   }); // end wsServer.on()
 
-  server.on( 'error', function( e ) {
+  httpServer.on( 'error', function( e ) {
     if ( e.code === 'EADDRINUSE' ) {
       console.log('Error: Port ' + CONFIG.NODE_PORT + ' already in use.');
     } else if ( e.code === 'EACCES' ) {
@@ -83,7 +104,7 @@ var http = require('http'),
     process.exit( 1 );
   });
 
-  server.on( 'close', function() {
+  httpServer.on( 'close', function() {
     console.log( 'Relay Server stopped.' );
   });
 
