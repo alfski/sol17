@@ -1,0 +1,140 @@
+<html>
+<head>
+<script type="text/javascript" src="js/utils.js"></script>
+<script type="text/javascript" src="js/reconnecting-websocket.min.js"></script>
+<script type="text/javascript" src="config.js?"></script>
+<script type="text/javascript">
+var delay = 0,
+    sendVideoTimer,
+    sendVideoDelay = 30,
+    state = { 'buffer': '', 'current': ''};
+
+function initialise() {
+
+  connectToRelay();
+
+  document.getElementById('config').innerHTML = printJSON(CONFIG, 'CONFIG.');
+}
+
+function handleWebSocketOpen() {
+  socketSend('MASTER');
+}
+
+function handleMesg( data ) {
+  if (!data.length > 0) { return; }
+
+  console.log('inbound:' + data );
+
+  var command = data;
+
+  switch (command) {
+    case 'REQUESTSTATE':
+      sendState();
+      break;
+    default:
+      console.log('recvd unknown command');
+      break;
+  }
+}
+
+function sendScene( scene ) {
+  socketSend( scene );
+  state.buffer = scene;
+}
+
+function sendURL( url ) {
+  // add check if URL exists
+  sendScene( 'URL,' + url );
+}
+
+function sendHTML( html ) {
+  // add HTML sanity check?
+  sendScene( 'HTML,' + html );
+}
+
+function sendImage( image ) {
+  // add image sanity check?
+  sendScene( 'IMG,' + image );
+}
+
+function sendVideo( video ) {
+  // add check if vidURL exists
+  sendScene( 'VIDEO,' + video );
+}
+function sendVideoControl( video ) {
+  socketSend( 'VIDCONTROL,' + video );
+}
+
+function sendReload() {
+  socketSend('RELOAD');
+}
+
+function sendSwap( delay ) {
+  if (delay && delay > 0) {
+    window.setTimeout( function() {
+      socketSend( 'SWAP' );
+      var tempState = state.current;
+      state.current = state.buffer;
+      state.buffer = tempState;
+    }, delay);
+  } else {
+    socketSend( 'SWAP' );
+    var tempState = state.current;
+    state.current = state.buffer;
+    state.buffer = tempState;
+  }
+}
+
+function sendState() {
+  console.log('state: ' + JSON.stringify( state ));
+  socketSend( 'STATE,' + JSON.stringify( state ));
+}
+
+</script>
+<style type="text/css">
+h1 { color: white; }
+pre { color: grey; }
+body { background-color: black; }
+</style>
+</head>
+<body onLoad="initialise()">
+<br>
+<div align=center>
+<h1>WonderWall Control</h1>
+<input type="button" value="Slide 1" onclick="sendURL('media/1-1280.html?');sendSwap(700);">
+<input type="button" value="Slide 2" onclick="sendURL('media/2-1280.html?');sendSwap(700);">
+<input type="button" value="Black" onclick="sendURL('media/black.html?');sendSwap(100);">
+<input type="button" value="Slide 3" onclick="sendURL('media/3-1280.html?');sendSwap(700);">
+<br/><br/>
+<form action=javascript:sendURL(document.getElementById('url').value)>
+<input type="text" name="url" value="media/red.html" id="url">
+<input type="button" value="Load URL" onclick="sendURL(document.getElementById('url').value);" />
+</form>
+<form action=javascript:sendHTML(document.getElementById('html').value)>
+<input type="text" name="html" value="" id="html">
+<input type="button" value="Load HTML" onclick="sendHTML(document.getElementById('html').value);" />
+</form> 
+<form action=javascript:sendImage(document.getElementById('image').value)>
+<input type="text" name="image" value="" id="image">
+<input type="button" value="Load Image" onclick="sendImage(document.getElementById('image').value);" />
+</form> 
+<form action=javascript:sendVideo(document.getElementById('video').value)>
+<input type="text" name="video" value="Wide.mp4" id="video">
+<input type="button" value="Load Video" onclick="sendVideo(document.getElementById('video').value);" /><br><br>
+<input type="button" value="Play Video" onclick="sendVideoControl('play');" />
+<input type="button" value="Pause" onclick="sendVideoControl('pause');" />
+<input type="button" value="Rewind" onclick="sendVideoControl('rewind');" />
+<input type="button" value="Mute" onclick="sendVideoControl('mute');" />
+<input type="button" value="UnMute" onclick="sendVideoControl('unmute');" />
+<!--
+<input type="button" value="Slow Speed" onclick="sendVideoControl('slow');" />
+<input type="button" value="Normal Speed" onclick="sendVideoControl('normal');" /> --!>
+</form>
+<hr width=40%>
+<input type="button" value="SWAP FRAMES" onclick="sendSwap(0);" />
+<input type="button" value="Reload Browsers" onclick="sendReload();" /><br/><br/>
+<input type='button' value='Relay Not OK' style='background-color:#ff8080' id='RelayStatus' />
+<pre><div id="config"></div></pre>
+</div>
+</body>
+</html>
