@@ -3,13 +3,14 @@
 // 20160825 websocket-relay.pl converted to javascript/NodeJS
 // 20161010 Jon Record Function
 // 20161108 Alf strip back & refactor, correct broken client id, use client address + port
+// 20170820 try/catches on ws.send()
 
 var DEBUG = true,
     HTTP = require('http'),
     WS = require('ws'),
 
     CONFIG = {
-      NODE_IP: 'localhost',
+      NODE_IP: 'localhost', // not used ?
       NODE_PORT: 3000,
     };
 

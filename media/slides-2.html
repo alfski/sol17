@@ -1,13 +1,11 @@
 <html>
 <head>
-<title>Looping slides</title>
-<script type="text/javascript">
+<title>Looping slides 2</title>
+<script type='text/javascript' src='slide-2.js'></script>
+<script type='text/javascript'>
 var hidFrame = 'frame0', visFrame = 'frame1';
 var transitionMode = 'blend';
 var delay = 5000, slideCounter = 0;
-
-var slide = [ "blue1.jpg", "blue2.jpg", "blue3.jpg", "blue4.jpg" ];
-
 var noofSlides = slide.length;
 
 var loop;
@@ -16,7 +14,9 @@ function initialise() {
 
   //console.log("slide count:" + noofSlides );
 
-  loadImage( slide[ slideCounter ] ); 
+  loadImage( slide[ slideCounter++ ] ); 
+  window.setTimeout( function() { swapFrame() }, 100 );
+  window.setTimeout( function() { loadImage( slide[ slideCounter ] ) }, 200);
 
   loop = setInterval( nextSlide, delay );
 } //end initialise
@@ -69,7 +69,11 @@ function getNextFrameId( frame ) { // if iframe1 return 0
 }
 
 </script>
-<style type="text/css">
+<style type='text/css'>
+body {
+ overflow:hidden;
+ background-color:#000;
+}
 #frame0,#frame1 {
  position: absolute;
  width: 100%;
