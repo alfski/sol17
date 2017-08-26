@@ -82,6 +82,13 @@ function sendSwap( delay ) {
     var tempState = state.current;
     state.current = state.buffer;
     state.buffer = tempState;
+
+    // swapping to video starts it playing, all other swaps pause video
+    if (state.current.startsWith('VIDEO,')) {
+      state.videoPlaying = true;
+    } else {
+      state.videoPlaying = false;
+    }
   }
 }
 
@@ -107,7 +114,7 @@ body { background-color: black; }
 <input type="button" value="Slide 3" onclick="sendURL('media/3-1280.html?');sendSwap(700);">
 <br/><br/>
 <form action=javascript:sendURL(document.getElementById('url').value)>
-<input type="text" name="url" value="media/red.html" id="url">
+<input type="text" name="url" value="media/red-%ID%.html" id="url">
 <input type="button" value="Load URL" onclick="sendURL(document.getElementById('url').value);" />
 </form>
 <form action=javascript:sendHTML(document.getElementById('html').value)>
@@ -121,8 +128,8 @@ body { background-color: black; }
 <form action=javascript:sendVideo(document.getElementById('video').value)>
 <input type="text" name="video" value="Wide.mp4" id="video">
 <input type="button" value="Load Video" onclick="sendVideo(document.getElementById('video').value);" /><br><br>
-<input type="button" value="Play Video" onclick="sendVideoControl('play');" />
-<input type="button" value="Pause" onclick="sendVideoControl('pause');" />
+<input type="button" value="Play Video" onclick="sendVideoControl('play');state.videoPlaying = true;" />
+<input type="button" value="Pause" onclick="sendVideoControl('pause');state.videoPlaying = false;" />
 <input type="button" value="Rewind" onclick="sendVideoControl('rewind');" />
 <input type="button" value="Mute" onclick="sendVideoControl('mute');" />
 <input type="button" value="UnMute" onclick="sendVideoControl('unmute');" />

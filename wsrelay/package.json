@@ -1,5 +1,5 @@
 {
-  "name": "alf websocket relayer",
+  "name": "alf-websocket-relayer",
   "version": "1.2.0",
   "dependencies": {
     "open": "0.0.3",

@@ -10,7 +10,7 @@ var hidFrame = 'frame0', visFrame = 'frame1';
 var transitionMode = 'blend';
 var state = { 'buffer': '', 'current': '' };
 
-if (typeof CONFIG.id === 'undefined') { id = 0; } else { id = CONFIG.id; }
+if (typeof CONFIG.id === 'undefined') { CONFIG.id = 0; }
 
 function initialise() {
 
@@ -22,7 +22,7 @@ function initialise() {
 function handleShowConfigPage() {
   console.log('load config page');
   hidFrame = 'frame' + getNextFrameId( visFrame );
-  document.getElementById( hidFrame ).innerHTML = '<div align=center><h3 style="font-size:40px;">goo.scem.ws</h3><hr style="height:10px;background-color:#fff"><br><br><br><h1 style="font-size:300px;line-height:0%;">' + id + '.0</h1><pre style="font-size:28px;">' + printJSON( CONFIG, 'CONFIG.') + '</pre><hr style="height:10px;background-color:#fff"></br><img src="media/wonderama.png" width=350></div>';
+  document.getElementById( hidFrame ).innerHTML = '<div align=center><h3 style="font-size:40px;">goo.scem.ws</h3><hr style="height:10px;background-color:#fff"><br><br><br><h1 style="font-size:300px;line-height:0%;">' + CONFIG.id + '.0</h1><pre style="font-size:28px;">' + printJSON( CONFIG, 'CONFIG.') + '</pre><hr style="height:10px;background-color:#fff"></br><img src="media/wonderama.png" width=350></div>';
   window.setTimeout( function() { handleSwap() }, 100);
 }
 
@@ -34,7 +34,12 @@ function handleMesg( data ) {
   //console.log('data:' + data);
   if (!data.length > 0) { return; }
 
-  var split = data.split(','), cmd = split[0], arg = split[1];
+  var cmd = data.split(',')[0];
+  var arg = data.substr( data.indexOf(',') + 1 );
+
+  if (arg.indexOf('%ID%')) {
+    arg = arg.replace('%ID%', CONFIG.id);
+  }
 
   switch (cmd) {
     case 'SWAP':
@@ -59,7 +64,7 @@ function handleMesg( data ) {
       handleVideoControl(arg);
       break;
     case 'STATE':
-      handleReceiveState( data.substr(data.indexOf(',') + 1 ));
+      handleReceiveState(arg);
       break;
     case 'TRANSITION':
       handleSetTransition(arg);
@@ -68,7 +73,7 @@ function handleMesg( data ) {
       handleShowConfigPage();
       break;
     default:
-      console.log('Unknown cmd=' + cmd + ' arg:' + arg);
+      console.log('Unknown cmd:' + cmd + ' arg:' + arg);
   }
 }
 
@@ -133,14 +138,19 @@ function handleReload() {
     } else {
 	console.log('current state is different');
         handleMesg( recvdState.current );
-        window.setTimeout( function() { handleSwap() }, 600);
+        window.setTimeout( function() {
+          handleSwap();
+          if (recvdState.current.startsWith('VIDEO,') && !recvdState.videoPlaying) {
+            handleVideoControl('pause');
+          }
+        }, 600);
         window.setTimeout( function() { handleMesg( recvdState.buffer ) }, 700);
     }
   }
 
 function handleURL( url ) {
   hidFrame = 'iframe' + getNextFrameId( visFrame );
-  console.log("url "+ url + " into " + hidFrame );
+  console.log("URL "+ url + " into " + hidFrame );
   document.getElementById( hidFrame ).src = url;
   state.buffer = 'URL,' + url;
 }
@@ -153,7 +163,7 @@ function getNextFrameId( frame ) { // if iframe1 return 0
 
 function handleHTML( html ) {
   hidFrame = 'frame' + getNextFrameId( visFrame );
-  console.log("html "+ html + " into " + hidFrame );
+  console.log("HTML "+ html + " into " + hidFrame );
   document.getElementById( hidFrame ).innerHTML = html;
   state.buffer = 'HTML,' + html;
 }
@@ -177,10 +187,12 @@ function handleImage( image ) {
         document.getElementById('v'+visFrame).currentTime = 0.1;
         break;
       case 'mute':
-        document.getElementById('v'+visFrame).volume = 0;
+        document.getElementById('v'+visFrame).volume = 0.0;
         break;
       case 'unmute':
-        document.getElementById('v'+visFrame).volume = 100;
+        if (!CONFIG.mute) {
+          document.getElementById('v'+visFrame).volume = 1.0;
+        }
         break;
       case 'slow':
         document.getElementById('v'+visFrame).playbackRate = 0.8;
@@ -195,12 +207,16 @@ function handleImage( image ) {
   }
 
 function handleVideo( vidArg ) {
-  console.log('video '+ vidArg );
   hidFrame = 'vidFrame' + getNextFrameId( visFrame ); // is this right?
+  console.log('VIDEO '+ vidArg + ' into ' + hidFrame );
   var type = 'video/' + vidArg.split('.').pop().trim();
   var vidStr = '<video id="v'+ hidFrame +'" height="100%"><source src="';
   vidStr += CONFIG.media + vidArg+'" type="'+type+'"></video>';
   document.getElementById( hidFrame ).innerHTML = vidStr;
+
+  if (CONFIG.mute) {
+    document.getElementById('v'+hidFrame).volume = 0;
+  }
   //console.log('vidstr '+ vidStr );
   state.buffer = 'VIDEO,'+ vidArg;
   }

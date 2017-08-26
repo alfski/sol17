@@ -3,14 +3,13 @@
 // 20160825 websocket-relay.pl converted to javascript/NodeJS
 // 20161010 Jon Record Function
 // 20161108 Alf strip back & refactor, correct broken client id, use client address + port
-// 20170820 Alf additional work for WSC Launch Event
 
 var DEBUG = true,
     HTTP = require('http'),
     WS = require('ws'),
 
     CONFIG = {
-      NODE_IP: 'localhost', // not used?
+      NODE_IP: 'localhost',
       NODE_PORT: 3000,
     };
 
@@ -51,34 +50,34 @@ var DEBUG = true,
 
          case "RESEND":
            try { wsClients[ clientAddrPort ].send( lastMessage ); }
-           catch (e) { console.log('resend send error'); }
+           catch (e) { console.log('resend: send error'); }
 	   break;
 
          case "NOOFCLIENTS": // tell Master the number of connected clients
            if (DEBUG) console.log( 'NoofClients:' + noOfClients );
            if (masterClientAddrPort !== undefined) {
-             try { wsClients[masterClientAddrPort].send( noOfClients.toString() ); }
-             catch (e) { console.log('noofclients send error'); }
+             try { wsClients[masterClientAddrPort].send( 'NOOFCLIENTS,' + noOfClients.toString() ); }
+             catch (e) { console.log('noofclients: send error'); }
            } else {
-             if (DEBUG) console.log( 'Master not defined');
+             if (DEBUG) console.log( 'noofclients: Master not defined');
            }
            break;
 
          case "REQUESTSTATE": // only to master
-           if (DEBUG) console.log( 'State Request' );
            if (masterClientAddrPort !== undefined) {
              try { wsClients[masterClientAddrPort].send( messageData ); }
-             catch (e) { console.log('requeststate send error'); }
+             catch (e) { console.log('requeststate: send error'); }
            } else {
-             if (DEBUG) console.log( 'Master not defined');
+             if (DEBUG) console.log( 'requeststate: Master not defined');
            }
            break;
 
          default: // do the relay thing
            for (var i in wsClients) {
              if (i != clientAddrPort && i != masterClientAddrPort) { // don't send to self or master
+               //console.log( 'sending to i=' + i );
                try { wsClients[i].send( messageData ); }
-               catch (e) { console.log('relay send error'); }
+               catch (e) { console.log('relay: send error'); }
              }
            }
            lastMessage = messageData;

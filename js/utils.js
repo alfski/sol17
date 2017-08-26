@@ -35,6 +35,7 @@ if (queryString['background']) { CONFIG.background = queryString['background']; 
 if (queryString['zoom']) { CONFIG.zoom = queryString['zoom']; }
 if (queryString['startY']) { CONFIG.startY = queryString['startY']; }
 if (queryString['id']) { CONFIG.id = queryString['id']; }
+if (queryString['mute']) { CONFIG.mute = true; }
 
 function connectToRelay() {
   webSocket = new ReconnectingWebSocket( CONFIG.relay );

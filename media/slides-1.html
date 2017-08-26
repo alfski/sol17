@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>Looping slides</title>
+<script type="text/javascript">
+var hidFrame = 'frame0', visFrame = 'frame1';
+var transitionMode = 'blend';
+var delay = 5000, slideCounter = 0;
+
+var slide = [ "red1.jpg", "red2.jpg", "red3.jpg", "red4.jpg" ];
+
+var noofSlides = slide.length;
+
+var loop;
+
+function initialise() {
+
+  //console.log("slide count:" + noofSlides );
+
+  loadImage( slide[ slideCounter ] ); 
+
+  loop = setInterval( nextSlide, delay );
+} //end initialise
+
+function nextSlide( ) {
+  //console.log('nextSlide:'+slideCounter );
+  swapFrame();
+  slideCounter++;
+  if (slideCounter >= noofSlides) { slideCounter = 0; }
+  window.setTimeout( function() { loadImage( slide[slideCounter] )}, 1000);
+}
+
+function loadImage( image ) {
+  var html = "<img src='" + image + "'>";
+  hidFrame = 'frame' + getNextFrameId( visFrame );
+  //console.log( html + " into " + hidFrame );
+  document.getElementById( hidFrame ).innerHTML = html;
+}
+
+function swapFrame() {
+    // console.log("pre-swap visFrame:"+visFrame);
+    // console.log("pre-swap hidFrame:"+hidFrame);
+    var toBeHidden = visFrame;
+
+    switch (transitionMode) {
+
+      case 'blend':
+        window.setTimeout( function() { document.getElementById( toBeHidden ).style.opacity = 0;}, 500);
+        document.getElementById( hidFrame ).style.opacity = 1;
+        document.getElementById( hidFrame ).style.transition = 'visibility 0s linear 0.5s,opacity 0.5s linear';
+        break;
+
+      default: // instant swap
+        document.getElementById( toBeHidden ).style.transition = '';
+        document.getElementById( hidFrame ).style.transition = '';
+        document.getElementById( toBeHidden ).style.opacity = 0;
+        document.getElementById( hidFrame ).style.opacity = 1;
+        break;
+    }
+
+    var tmpFrame = visFrame;
+    visFrame = hidFrame;
+    hidFrame = tmpFrame;
+}
+
+function getNextFrameId( frame ) { // if iframe1 return 0
+  var num = frame.substring(frame.length -1, frame.length);
+  num = ++num % 2;
+  return num;
+}
+
+</script>
+<style type="text/css">
+#frame0,#frame1 {
+ position: absolute;
+ width: 100%;
+ height: 100%;
+ left: 0px;
+ top: 0px;
+ padding: 0px;
+ overflow: hidden;
+ opacity: 0;
+// z-index: 1;
+ border-width:0px;
+}
+</style>
+</head>
+<body onLoad='initialise()'>
+<div id='frame0'></div>
+<div id='frame1'></div>
+</body>
+</html>
