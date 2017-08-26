@@ -30,7 +30,8 @@ function nextSlide( ) {
 }
 
 function loadImage( image ) {
-  var html = "<img src='" + image + "'>";
+  var html = "<table border=0 align=middle width=100% height=100%><tr><td align=center><img src='" + image + "'</td></tr></table>";
+
   hidFrame = 'frame' + getNextFrameId( visFrame );
   //console.log( html + " into " + hidFrame );
   document.getElementById( hidFrame ).innerHTML = html;
