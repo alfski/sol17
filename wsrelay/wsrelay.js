@@ -1,11 +1,11 @@
-// wsrelay.js
+
 // from cesium-lg/server.js & websocket-relay.pl used as a skeleton //Ali 17433668
 // 20160825 websocket-relay.pl converted to javascript/NodeJS
 // 20161010 Jon Record Function
 // 20161108 Alf strip back & refactor, correct broken client id, use client address + port
 // 20170820 try/catches on ws.send()
 
-var DEBUG = true,
+var DEBUG = false,
     HTTP = require('http'),
     WS = require('ws'),
 
