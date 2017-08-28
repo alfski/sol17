@@ -14,7 +14,7 @@ function getQueryStringVars() {
 
   var get = query_string.split( "&" );
   var server_variables = {};
-        
+
   for ( var i=0; i < get.length; i++ ) {
     var pair = get[ i ].split( "=" );
     server_variables[ pair[ 0 ] ] = unescape( pair[ 1 ] );
@@ -27,7 +27,7 @@ var webSocket, socketOpen = false;
 var queryString = getQueryStringVars();
 
 // overwrite some global CONFIG params with queryString params
-if (queryString['relay'])  { CONFIG.relay  = queryString['relay']; }
+if (queryString['relay']) { CONFIG.relay = queryString['relay']; }
 if (queryString['yaw']) { CONFIG.yaw = queryString['yaw']; }
 if (queryString['yawoffset']) { CONFIG.yawoffset = queryString['yawoffset']; }
 if (queryString['fov']) { CONFIG.fov = queryString['fov']; }
