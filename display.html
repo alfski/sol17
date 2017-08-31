@@ -42,7 +42,6 @@ function getMySet() {
       }
     }
   }
-  //console.log('CONFIG.setId:' + CONFIG.setId);
 }
 
 function handleWebSocketOpen() {
@@ -209,6 +208,7 @@ function handleReceiveState( json ) {
 function handleURL( url ) {
   hidFrame = 'iFrame' + getNextFrameId( visFrame );
   console.log("URL "+ url + " into " + hidFrame );
+  document.getElementById( hidFrame ).src = 'http://192.168.0.163/sol17/'; // empty first?
   document.getElementById( hidFrame ).src = url;
   state.buffer = 'URL,' + url;
 }
@@ -233,8 +233,8 @@ function handleImage( image ) {
 
 function handleColor( rgb ) {
   console.log( 'handle set solid Color' );
-  var docString = "javascript:'<html><body bgcolor="+ rgb + "></body></html>'";
-  handleURL( docString );
+  handleHTML( '' );
+  document.getElementById( hidFrame ).style.backgroundColor=rgb;
 }
 
 function handleVideoControl( vidArg ) {
