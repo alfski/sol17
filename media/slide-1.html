@@ -1,21 +1,25 @@
 <html>
 <head>
-<title>Looping slides 0</title>
-<script type='text/javascript' src='slide-0.js'></script>
-<script type='text/javascript'>
+<title>Looping slides 1</title>
+<script type='text/javascript' src='slide-1.js?'></script>
+<script type="text/javascript">
 var hidFrame = 'frame0', visFrame = 'frame1';
 var transitionMode = 'blend';
-var delay = 5000, slideCounter = 0;
+var delay = 15000, slideCounter = 0;
 var noofSlides = slide.length;
+
 var loop;
 
 function initialise() {
+
+  //console.log("slide count:" + noofSlides );
+
   loadImage( slide[ slideCounter++ ] ); 
   window.setTimeout( function() { swapFrame() }, 100 );
-  window.setTimeout( function() { loadImage( slide[ slideCounter ] ) }, 200); 
+  window.setTimeout( function() { loadImage( slide[ slideCounter ] ) }, 200);
 
-  loop = setInterval( nextSlide, delay ); // do this forever!
-}
+  loop = setInterval( nextSlide, delay );
+} //end initialise
 
 function nextSlide( ) {
   //console.log('nextSlide:'+slideCounter );
@@ -26,7 +30,8 @@ function nextSlide( ) {
 }
 
 function loadImage( image ) {
-  var html = "<img src='" + image + "'>";
+  var html = "<table border=0 align=middle width=100% height=100%><tr><td align=center><img src='" + image + "'</td></tr></table>";
+
   hidFrame = 'frame' + getNextFrameId( visFrame );
   //console.log( html + " into " + hidFrame );
   document.getElementById( hidFrame ).innerHTML = html;

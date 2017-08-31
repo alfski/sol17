@@ -108,13 +108,19 @@ body { background-color: black; }
 <br>
 <div align=center>
 <h1>WonderWall Control</h1>
-<input type="button" value="Slide 1" onclick="sendURL('media/1-1280.html?');sendSwap(700);">
-<input type="button" value="Slide 2" onclick="sendURL('media/2-1280.html?');sendSwap(700);">
+<input type="button" value="TED Slides" onclick="sendURL('media/slide-%ID%.html');sendSwap(500);">
+<input type="button" value="WSU" onclick="sendImage('wsu.jpg');sendSwap(500);">
+<input type="button" value="SCEM" onclick="sendImage('scem.jpg');sendSwap(500);">
+<!-- <input type="button" value="TeamPhoto" onclick="sendImage('teamphoto.jpg');sendSwap(500);">
+<input type="button" value="Team" onclick="sendImage('team.jpg');sendSwap(500);">-->
+</br></br> 
+<input type="button" value="Sponsors" onclick="sendImage('sponsors.jpg');sendSwap(500);">
 <input type="button" value="Black" onclick="sendURL('media/black.html?');sendSwap(100);">
-<input type="button" value="Slide 3" onclick="sendURL('media/3-1280.html?');sendSwap(700);">
+<input type="button" value="Team Loop" onclick="sendURL('media/team-%ID%.html?');sendSwap(100);">
+<input type="button" value="FollowUs" onclick="sendImage('follow.jpg');sendSwap(500);">
 <br/><br/>
 <form action=javascript:sendURL(document.getElementById('url').value)>
-<input type="text" name="url" value="media/slides-%ID%.html" id="url">
+<input type="text" name="url" value="media/slide-%ID%.html" id="url">
 <input type="button" value="Load URL" onclick="sendURL(document.getElementById('url').value);" />
 </form>
 <form action=javascript:sendHTML(document.getElementById('html').value)>
@@ -126,7 +132,7 @@ body { background-color: black; }
 <input type="button" value="Load Image" onclick="sendImage(document.getElementById('image').value);" />
 </form> 
 <form action=javascript:sendVideo(document.getElementById('video').value)>
-<input type="text" name="video" value="Wide.mp4" id="video">
+<input type="text" name="video" value="final.mp4" id="video">
 <input type="button" value="Load Video" onclick="sendVideo(document.getElementById('video').value);" /><br><br>
 <input type="button" value="Play Video" onclick="sendVideoControl('play');state.videoPlaying = true;" />
 <input type="button" value="Pause" onclick="sendVideoControl('pause');state.videoPlaying = false;" />
