@@ -6,7 +6,7 @@
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript">
 
-var hidFrame = 'frame0', visFrame = 'frame1';
+var hidFrame = 'htmlFrame0', visFrame = 'htmlFrame1';
 var transitionMode = 'blend';
 var state = { 'buffer': '', 'current': '' };
 
@@ -21,7 +21,7 @@ function initialise() {
 
 function handleShowConfigPage() {
   console.log('load config page');
-  hidFrame = 'frame' + getNextFrameId( visFrame );
+  hidFrame = 'htmlFrame' + getNextFrameId( visFrame );
   document.getElementById( hidFrame ).innerHTML = '<div align=center></br></br><img src="media/wonderama.png" width=350></br></br><hr style="height:10px;background-color:#000" width=33%><h1 style="font-size:300px;color:#811;line-height:0%;">' + CONFIG.id + '.0</h1><pre style="font-size:28px;">' + printJSON( CONFIG, 'CONFIG.') + '</pre><hr style="height:10px;background-color:#000" width=33%><h3 style="font-size:40px;">wonderwall.scem.ws</h3></div><table border=0 cellspacing=0 width=100% height=20%><tr width=%100><td bgcolor=#000></td><td bgcolor=#00f></td><td bgcolor=#f00></td><td bgcolor=#f0f></td><td bgcolor=#0f0></td><td bgcolor=#0ff></td><td bgcolor=#ff0></td><td bgcolor=#fff></td></tr></table>';
   window.setTimeout( function() { handleSwap() }, 100);
 }
@@ -37,8 +37,8 @@ function handleMesg( data ) {
   var cmd = data.split(',')[0];
   var arg = data.substr( data.indexOf(',') + 1 );
 
-  if (arg.indexOf('%ID%')) {
-    arg = arg.replace('%ID%', CONFIG.id);
+  if (arg.indexOf('$ID$')) {
+    arg = arg.replace('$ID$', CONFIG.id);
   }
 
   switch (cmd) {
@@ -72,52 +72,64 @@ function handleMesg( data ) {
     case 'SHOWCONFIG':
       handleShowConfigPage();
       break;
+    case 'FLUSH':
+      handleFlush();
+      break;
+    case 'COLOR':
+      handleColor(arg);
+      break;
     default:
       console.log('Unknown cmd:' + cmd + ' arg:' + arg);
   }
 }
 
-  function handleSwap() {
+function handleSwap() {
 
-    // console.log("pre-swap visFrame:"+visFrame);
-    // console.log("pre-swap hidFrame:"+hidFrame);
+  // console.log("pre-swap visFrame:"+visFrame);
+  // console.log("pre-swap hidFrame:"+hidFrame);
 
-    var toBeHidden = visFrame;
+  var toBeHidden = visFrame;
 
-    switch (transitionMode) {
+  switch (transitionMode) {
 
-      case 'blend':
-        window.setTimeout( function() { document.getElementById( toBeHidden ).style.opacity = 0;}, 500);
-        document.getElementById( hidFrame ).style.opacity = 1;
-        document.getElementById( hidFrame ).style.transition = 'visibility 0s linear 0.5s,opacity 0.5s linear';
-        break;
+    case 'blend':
+      var tbh = toBeHidden; // because using this in future
+      window.setTimeout( function() { document.getElementById( tbh ).style.opacity = 0;}, 500);
+      document.getElementById( hidFrame ).style.opacity = 1;
+      document.getElementById( hidFrame ).style.transition = 'visibility 0s linear 0.5s,opacity 0.5s linear';
+      break;
 
-      default: // instant swap
-        //console.log('using default instant transition');
-        document.getElementById( toBeHidden ).style.transition = '';
-        document.getElementById( hidFrame ).style.transition = '';
-        document.getElementById( toBeHidden ).style.opacity = 0;
-        document.getElementById( hidFrame ).style.opacity = 1;
-        break;
-    }
-
-    var tmpFrame = visFrame;
-    visFrame = hidFrame;
-    hidFrame = tmpFrame;
-
-    var tempState = state.current;
-    state.current = state.buffer;
-    state.buffer = tempState;
-
-    if (visFrame.substring(0,3) == 'vid') { // play visible video
-        document.getElementById('v'+visFrame).play();
-    }
-    if (hidFrame.substring(0,3) == 'vid') { // pause hidden video
-        document.getElementById('v'+hidFrame).pause();
-    }
-
-    //console.log("post-swap visFrame:"+visFrame+"\npost-swap hidFrame:"+hidFrame);
+    default: // instant swap
+      //console.log('using default instant transition');
+      document.getElementById( toBeHidden ).style.transition = '';
+      document.getElementById( hidFrame ).style.transition = '';
+      document.getElementById( toBeHidden ).style.opacity = 0;
+      document.getElementById( hidFrame ).style.opacity = 1;
+      break;
   }
+
+  var tmpFrame = visFrame;
+  visFrame = hidFrame;
+  hidFrame = tmpFrame;
+
+  var tempState = state.current;
+  state.current = state.buffer;
+  state.buffer = tempState;
+
+  if (visFrame.substring(0,3) == 'vid') { // start play on newly visible video
+    var vv = 'v'+visFrame;
+    window.setTimeout( function() {
+      try { document.getElementById( vv ).play(); }
+      catch (e) { console.log( 'no video on v' + visFrame) }
+    }, 500 );
+  }
+  if (hidFrame.substring(0,3) == 'vid') { // pause hiding video
+    try { document.getElementById('v'+hidFrame).pause(); }
+    catch (e) { console.log( 'no video on v' + hidFrame)}
+  }
+
+  //console.log("post-swap visFrame:"+visFrame+"\npost-swap hidFrame:"+hidFrame);
+}
 
 function handleSetTransition( transition ) {
   console.log('transitionMode:' + transition );
@@ -128,28 +140,44 @@ function handleReload() {
   location.reload();
 }
 
-  function handleReceiveState( json ) {
-    // did I ask for state?
-    var recvdState = JSON.parse( json );
-    //console.log('sent state:' + JSON.stringify( newState ));
-    //console.log('curr state:' + JSON.stringify( state ));
-    if (recvdState.current == state.current) {
-	console.log('state samesies');
-    } else {
-	console.log('current state is different');
-        handleMesg( recvdState.current );
-        window.setTimeout( function() {
-          handleSwap();
-          if (recvdState.current.startsWith('VIDEO,') && !recvdState.videoPlaying) {
-            handleVideoControl('pause');
-          }
-        }, 600);
-        window.setTimeout( function() { handleMesg( recvdState.buffer ) }, 700);
-    }
+function handleFlush() {
+  console.log('Flushing frames');
+  if(visFrame !== 'htmlFrame0') {
+    document.getElementById( 'htmlFrame0' ).innerHTML = '' }
+  if(visFrame !== 'htmlFrame1') {
+    document.getElementById( 'htmlFrame1' ).innerHTML = '' }
+  if(visFrame !== 'iFrame0') {
+    document.getElementById( 'iFrame0' ).src = '' }
+  if(visFrame !== 'iFrame1') {
+    document.getElementById( 'iFrame1' ).src = '' }
+  if(visFrame !== 'vidFrame0') {
+    document.getElementById( 'vidFrame0' ).innerHTML = '' }
+  if(visFrame !== 'vidFrame1') {
+    document.getElementById( 'vidFrame1' ).innerHTML = '' }
+}
+
+function handleReceiveState( json ) {
+  // did I ask for state?
+  var recvdState = JSON.parse( json );
+  //console.log('sent state:' + JSON.stringify( newState ));
+  //console.log('curr state:' + JSON.stringify( state ));
+  if (recvdState.current == state.current) {
+    onsole.log('state samesies');
+  } else {
+    onsole.log('current state is different');
+    handleMesg( recvdState.current );
+    window.setTimeout( function() {
+      handleSwap();
+      if (recvdState.current.startsWith('VIDEO,') && !recvdState.videoPlaying) {
+        handleVideoControl('pause');
+      }
+    }, 600);
+    window.setTimeout( function() { handleMesg( recvdState.buffer ) }, 700);
   }
+}
 
 function handleURL( url ) {
-  hidFrame = 'iframe' + getNextFrameId( visFrame );
+  hidFrame = 'iFrame' + getNextFrameId( visFrame );
   console.log("URL "+ url + " into " + hidFrame );
   document.getElementById( hidFrame ).src = url;
   state.buffer = 'URL,' + url;
@@ -162,49 +190,55 @@ function getNextFrameId( frame ) { // if iframe1 return 0
 }
 
 function handleHTML( html ) {
-  hidFrame = 'frame' + getNextFrameId( visFrame );
+  hidFrame = 'htmlFrame' + getNextFrameId( visFrame );
   console.log("HTML "+ html + " into " + hidFrame );
   document.getElementById( hidFrame ).innerHTML = html;
   state.buffer = 'HTML,' + html;
 }
 
 function handleImage( image ) {
-  console.log("image " + image);
+  //console.log("image " + image);
   handleHTML("<img src='" + CONFIG.media + image+"'>");
 }
 
-  function handleVideoControl( vidArg ) {
-    console.log('videocontrol '+ vidArg );
-    switch (vidArg) {
-      case 'pause':
-        document.getElementById('v'+visFrame).pause();
-        break;
-      case 'play':
-        document.getElementById('v'+visFrame).play();
-        break;
-      case 'rewind':
-        document.getElementById('v'+visFrame).pause();
-        document.getElementById('v'+visFrame).currentTime = 0.1;
-        break;
-      case 'mute':
-        document.getElementById('v'+visFrame).volume = 0.0;
-        break;
-      case 'unmute':
-        if (!CONFIG.mute) {
-          document.getElementById('v'+visFrame).volume = 1.0;
-        }
-        break;
-      case 'slow':
-        document.getElementById('v'+visFrame).playbackRate = 0.8;
-        break;
-      case 'normal':
-        document.getElementById('v'+visFrame).playbackRate = 1.0;
-        break;
-      default:
-        console.log('unknown video control command');
-        break;
-    }
+function handleColor( rgb ) {
+  console.log( 'handle set solid Color' );
+  var docString = "javascript:'<html><body bgcolor="+ rgb + "></body></html>'";
+  handleURL( docString );
+}
+
+function handleVideoControl( vidArg ) {
+  console.log('videocontrol '+ vidArg );
+  switch (vidArg) {
+    case 'pause':
+      document.getElementById('v'+visFrame).pause();
+      break;
+    case 'play':
+      document.getElementById('v'+visFrame).play();
+      break;
+    case 'rewind':
+      document.getElementById('v'+visFrame).pause();
+      document.getElementById('v'+visFrame).currentTime = 0.1;
+      break;
+    case 'mute':
+      document.getElementById('v'+visFrame).volume = 0.0;
+      break;
+    case 'unmute':
+      if (!CONFIG.mute) {
+        document.getElementById('v'+visFrame).volume = 1.0;
+      }
+      break;
+    case 'slow':
+      document.getElementById('v'+visFrame).playbackRate = 0.8;
+      break;
+    case 'normal':
+      document.getElementById('v'+visFrame).playbackRate = 1.0;
+      break;
+    default:
+      console.log('unknown video control command');
+      break;
   }
+}
 
 function handleVideo( vidArg ) {
   hidFrame = 'vidFrame' + getNextFrameId( visFrame ); // is this right?
@@ -235,7 +269,7 @@ h1,h3 {
  font-family: sans-serif; color: white;
 }
 pre { color: white; }
-#iframe0,#iframe1,#frame0,#frame1 {
+#iFrame0,#iFrame1,#htmlFrame0,#htmlFrame1 {
  position: absolute;
  width: 100%;
  height: 100%;
@@ -259,17 +293,13 @@ pre { color: white; }
 // z-index: 1;
  border-width:0px;
 }
-#button {
- z-index: -1;
- visibility: hidden;
-}
 </style>
 </head>
 <body onLoad="initialise()">
-<iframe id="iframe0"></iframe>
-<iframe id="iframe1"></iframe>
-<div id="frame0"></div>
-<div id="frame1"></div>
+<iframe id="iFrame0"></iframe>
+<iframe id="iFrame1"></iframe>
+<div id="htmlFrame0"></div>
+<div id="htmlFrame1"></div>
 <div id="vidFrame0"></div>
 <div id="vidFrame1"></div>
 </body>

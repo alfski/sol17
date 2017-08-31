@@ -69,6 +69,15 @@ function sendReload() {
   socketSend('RELOAD');
 }
 
+function sendFlush() {
+  socketSend('FLUSH');
+  state.buffer = '';
+}
+
+function sendColor( col ) {
+  socketSend('COLOR,' + col );
+}
+
 function sendSwap( delay ) {
   if (delay && delay > 0) {
     window.setTimeout( function() {
@@ -108,19 +117,19 @@ body { background-color: black; }
 <br>
 <div align=center>
 <h1>WonderWall Control</h1>
-<input type="button" value="TED Slides" onclick="sendURL('media/slide-%ID%.html');sendSwap(500);">
+<input type="button" value="TED Slides" onclick="sendURL('media/slide-$ID$.html');sendSwap(500);">
 <input type="button" value="WSU" onclick="sendImage('wsu.jpg');sendSwap(500);">
 <input type="button" value="SCEM" onclick="sendImage('scem.jpg');sendSwap(500);">
 <!-- <input type="button" value="TeamPhoto" onclick="sendImage('teamphoto.jpg');sendSwap(500);">
 <input type="button" value="Team" onclick="sendImage('team.jpg');sendSwap(500);">-->
 </br></br> 
 <input type="button" value="Sponsors" onclick="sendImage('sponsors.jpg');sendSwap(500);">
-<input type="button" value="Black" onclick="sendURL('media/black.html?');sendSwap(100);">
-<input type="button" value="Team Loop" onclick="sendURL('media/team-%ID%.html?');sendSwap(100);">
+<input type="button" value="Black" onclick="sendColor('#000');sendSwap(100);">
+<input type="button" value="Team Loop" onclick="sendURL('media/team-$ID$.html?');sendSwap(100);">
 <input type="button" value="FollowUs" onclick="sendImage('follow.jpg');sendSwap(500);">
 <br/><br/>
 <form action=javascript:sendURL(document.getElementById('url').value)>
-<input type="text" name="url" value="media/slide-%ID%.html" id="url">
+<input type="text" name="url" value="media/slide-$ID$.html" id="url">
 <input type="button" value="Load URL" onclick="sendURL(document.getElementById('url').value);" />
 </form>
 <form action=javascript:sendHTML(document.getElementById('html').value)>
@@ -130,6 +139,10 @@ body { background-color: black; }
 <form action=javascript:sendImage(document.getElementById('image').value)>
 <input type="text" name="image" value="" id="image">
 <input type="button" value="Load Image" onclick="sendImage(document.getElementById('image').value);" />
+</form> 
+<form action=javascript:sendColor(document.getElementById('color').value)>
+<input type="text" name="color" value="" id="color">
+<input type="button" value="Load Color" onclick="sendColor(document.getElementById('color').value);" />
 </form> 
 <form action=javascript:sendVideo(document.getElementById('video').value)>
 <input type="text" name="video" value="final.mp4" id="video">
@@ -145,7 +158,9 @@ body { background-color: black; }
 </form>
 <hr width=40%>
 <input type="button" value="SWAP FRAMES" onclick="sendSwap(0);" />
-<input type="button" value="Reload Browsers" onclick="sendReload();" /><br/><br/>
+<input type="button" value="FLUSH" onclick="sendFlush();" />
+<input type="button" value="Reload Clients" onclick="sendReload();" />
+<br/><br/>
 <input type='button' value='Relay Not OK' style='background-color:#ff8080' id='RelayStatus' />
 <pre><div id="config"></div></pre>
 </div>

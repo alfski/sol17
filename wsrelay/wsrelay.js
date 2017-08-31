@@ -81,7 +81,9 @@ var DEBUG = false,
                catch (e) { console.log('relay: send error'); }
              }
            }
-           lastMessage = messageData;
+           if (messageData !== "FLUSH") {
+             lastMessage = messageData;
+           }
            break;
        }
    }); // end socket.on 'message'
