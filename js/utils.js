@@ -2,7 +2,22 @@
 function printJSON( J, prefix ) {
   var output = '';
   for (var i in J) {
-    output += prefix + i + '=' + J[i]+'\n';
+    if (i !== 'set') { 
+      output += prefix + i + '=' + J[i]+'\n';
+    } else {
+      var set = CONFIG.set;
+
+      output += prefix + i + '=[ ';
+      for (var i=0; i < set.length; i++ ) {
+        output += '[';
+        for (var j=0; j < set[i].length; j++ ) {
+         output += set[i][j];
+         if (j < set[i].length -1 ) { output += ','; }
+        }
+        output += '] ';
+      }
+      output += ']\n';
+    }
   }
 
   return output;
@@ -34,7 +49,7 @@ if (queryString['fov']) { CONFIG.fov = queryString['fov']; }
 if (queryString['background']) { CONFIG.background = queryString['background']; }
 if (queryString['zoom']) { CONFIG.zoom = queryString['zoom']; }
 if (queryString['startY']) { CONFIG.startY = queryString['startY']; }
-if (queryString['id']) { CONFIG.id = queryString['id']; }
+if (queryString['id']) { CONFIG.myId = queryString['id']; }
 if (queryString['mute']) { CONFIG.mute = true; }
 
 function connectToRelay() {

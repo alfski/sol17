@@ -5,6 +5,7 @@
 <script type="text/javascript" src="js/reconnecting-websocket.min.js"></script>
 <script type="text/javascript">
 var delay = 0,
+    sentPingTime, 
     sendVideoTimer,
     sendVideoDelay = 30,
     state = { 'buffer': '', 'current': ''};
@@ -23,13 +24,23 @@ function handleWebSocketOpen() {
 function handleMesg( data ) {
   if (!data.length > 0) { return; }
 
-  console.log('inbound:' + data );
+  //console.log('inbound:' + data );
 
-  var command = data;
+  var command = data.split(',')[0];
 
   switch (command) {
     case 'REQUESTSTATE':
       sendState();
+      break;
+    case 'NOOFCLIENTS':
+      console.log('noofClients: ' + data.split(',')[1] );
+      break;
+    case 'PINGREPLY':
+      var delay = Date.now() - sentPingTime;
+      console.log('PingReply:' + delay );
+      break;
+    case 'TIMEREPLY':
+      console.log('TimeReply:' + data.split(',')[1] );
       break;
     default:
       console.log('recvd unknown command');
@@ -72,6 +83,11 @@ function sendReload() {
 function sendFlush() {
   socketSend('FLUSH');
   state.buffer = '';
+}
+
+function sendPing() {
+  socketSend('PING');
+  sentPingTime = Date.now();
 }
 
 function sendColor( col ) {
@@ -117,7 +133,7 @@ body { background-color: black; }
 <br>
 <div align=center>
 <h1>WonderWall Control</h1>
-<input type="button" value="TED Slides" onclick="sendURL('media/slide-$ID$.html');sendSwap(500);">
+<input type="button" value="TED Slides" onclick="sendURL('media/slide-$SET$.html');sendSwap(500);">
 <input type="button" value="WSU" onclick="sendImage('wsu.jpg');sendSwap(500);">
 <input type="button" value="SCEM" onclick="sendImage('scem.jpg');sendSwap(500);">
 <!-- <input type="button" value="TeamPhoto" onclick="sendImage('teamphoto.jpg');sendSwap(500);">
@@ -125,7 +141,7 @@ body { background-color: black; }
 </br></br> 
 <input type="button" value="Sponsors" onclick="sendImage('sponsors.jpg');sendSwap(500);">
 <input type="button" value="Black" onclick="sendColor('#000');sendSwap(100);">
-<input type="button" value="Team Loop" onclick="sendURL('media/team-$ID$.html?');sendSwap(100);">
+<input type="button" value="Team Loop" onclick="sendURL('media/team-$SET$.html?');sendSwap(100);">
 <input type="button" value="FollowUs" onclick="sendImage('follow.jpg');sendSwap(500);">
 <br/><br/>
 <form action=javascript:sendURL(document.getElementById('url').value)>
@@ -159,6 +175,7 @@ body { background-color: black; }
 <hr width=40%>
 <input type="button" value="SWAP FRAMES" onclick="sendSwap(0);" />
 <input type="button" value="FLUSH" onclick="sendFlush();" />
+<input type="button" value="PING" onclick="sendPing();" />
 <input type="button" value="Reload Clients" onclick="sendReload();" />
 <br/><br/>
 <input type='button' value='Relay Not OK' style='background-color:#ff8080' id='RelayStatus' />

@@ -58,9 +58,19 @@ var DEBUG = false,
            if (DEBUG) console.log( 'NoofClients:' + noOfClients );
            if (masterClientAddrPort !== undefined) {
              try { wsClients[masterClientAddrPort].send( 'NOOFCLIENTS,' + noOfClients.toString() ); }
-             catch (e) { console.log('noofclients: send error'); }
+             catch (e) { console.log('noofClients: send error'); }
            } else {
-             if (DEBUG) console.log( 'noofclients: Master not defined');
+             if (DEBUG) console.log( 'noofClients: Master not defined');
+           }
+           break;
+
+         case "PINGREPLY":
+           if (DEBUG) console.log( 'PingReply' );
+           if (masterClientAddrPort !== undefined) {
+             try { wsClients[masterClientAddrPort].send( 'PINGREPLY' ); }
+             catch (e) { console.log('PingReply: send error'); }
+           } else {
+             if (DEBUG) console.log( 'PingReply: Master not defined');
            }
            break;
 
@@ -81,7 +91,7 @@ var DEBUG = false,
                catch (e) { console.log('relay: send error'); }
              }
            }
-           if (messageData !== "FLUSH") {
+           if (messageData !== "FLUSH" && (messageData !== "PING")) {
              lastMessage = messageData;
            }
            break;

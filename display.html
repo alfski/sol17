@@ -10,11 +10,15 @@ var hidFrame = 'htmlFrame0', visFrame = 'htmlFrame1';
 var transitionMode = 'blend';
 var state = { 'buffer': '', 'current': '' };
 
-if (typeof CONFIG.id === 'undefined') { CONFIG.id = 0; }
+if (typeof CONFIG.myId === 'undefined') { CONFIG.myId = 0 }
+
+if (typeof CONFIG.mySet === 'undefined') { CONFIG.mySet = 0 }
 
 function initialise() {
 
   connectToRelay();
+
+  getMySet();
 
   handleShowConfigPage();
 } //end initialise
@@ -22,8 +26,23 @@ function initialise() {
 function handleShowConfigPage() {
   console.log('load config page');
   hidFrame = 'htmlFrame' + getNextFrameId( visFrame );
-  document.getElementById( hidFrame ).innerHTML = '<div align=center></br></br><img src="media/wonderama.png" width=350></br></br><hr style="height:10px;background-color:#000" width=33%><h1 style="font-size:300px;color:#811;line-height:0%;">' + CONFIG.id + '.0</h1><pre style="font-size:28px;">' + printJSON( CONFIG, 'CONFIG.') + '</pre><hr style="height:10px;background-color:#000" width=33%><h3 style="font-size:40px;">wonderwall.scem.ws</h3></div><table border=0 cellspacing=0 width=100% height=20%><tr width=%100><td bgcolor=#000></td><td bgcolor=#00f></td><td bgcolor=#f00></td><td bgcolor=#f0f></td><td bgcolor=#0f0></td><td bgcolor=#0ff></td><td bgcolor=#ff0></td><td bgcolor=#fff></td></tr></table>';
+  document.getElementById( hidFrame ).innerHTML = '<div align=center></br></br><img src="media/wonderama.png" width=350></br></br><hr style="height:10px;background-color:#000" width=33%><h1 style="font-size:300px;color:#811;line-height:0%;">' + CONFIG.myId + '.0</h1><pre style="font-size:28px;">' + printJSON( CONFIG, 'CONFIG.') + '</pre><hr style="height:10px;background-color:#000" width=33%><h3 style="font-size:40px;">wonderwall.scem.ws</h3></div><table border=0 cellspacing=0 width=100% height=20%><tr width=%100><td bgcolor=#000></td><td bgcolor=#00f></td><td bgcolor=#f00></td><td bgcolor=#f0f></td><td bgcolor=#0f0></td><td bgcolor=#0ff></td><td bgcolor=#ff0></td><td bgcolor=#fff></td></tr></table>';
   window.setTimeout( function() { handleSwap() }, 100);
+}
+
+function getMySet() {
+  
+  var set = CONFIG.set;
+
+  for (var i=0; i < set.length; i++ ) {
+    for (var j=0; j < set[i].length; j++ ) {
+      if (set[i][j] == CONFIG.myId) {
+        CONFIG.mySet = i;
+        break;
+      }
+    }
+  }
+  //console.log('CONFIG.setId:' + CONFIG.setId);
 }
 
 function handleWebSocketOpen() {
@@ -34,11 +53,14 @@ function handleMesg( data ) {
   //console.log('data:' + data);
   if (!data.length > 0) { return; }
 
-  var cmd = data.split(',')[0];
+  var cmd = data.split( ',' )[0];
   var arg = data.substr( data.indexOf(',') + 1 );
 
-  if (arg.indexOf('$ID$')) {
-    arg = arg.replace('$ID$', CONFIG.id);
+  if (arg.indexOf( '$ID$' )) {
+    arg = arg.replace( '$ID$', CONFIG.myId );
+  }
+  if (arg.indexOf( '$SET$' )) {
+    arg = arg.replace( '$SET$', CONFIG.mySet );
   }
 
   switch (cmd) {
@@ -61,13 +83,13 @@ function handleMesg( data ) {
       handleVideo(arg);
       break;
     case 'VIDCONTROL':
-      handleVideoControl(arg);
+      handleVideoControl( arg );
       break;
     case 'STATE':
-      handleReceiveState(arg);
+      handleReceiveState( arg );
       break;
     case 'TRANSITION':
-      handleSetTransition(arg);
+      handleSetTransition( arg );
       break;
     case 'SHOWCONFIG':
       handleShowConfigPage();
@@ -77,6 +99,9 @@ function handleMesg( data ) {
       break;
     case 'COLOR':
       handleColor(arg);
+      break;
+    case 'PING':
+      handlePing();
       break;
     default:
       console.log('Unknown cmd:' + cmd + ' arg:' + arg);
@@ -156,6 +181,11 @@ function handleFlush() {
     document.getElementById( 'vidFrame1' ).innerHTML = '' }
 }
 
+function handlePing() {
+  //console.log('reply to ping');
+  socketSend('PINGREPLY');
+}
+
 function handleReceiveState( json ) {
   // did I ask for state?
   var recvdState = JSON.parse( json );
@@ -209,30 +239,37 @@ function handleColor( rgb ) {
 
 function handleVideoControl( vidArg ) {
   console.log('videocontrol '+ vidArg );
-  switch (vidArg) {
+  // try:catch all of these settings methods
+  var vf = 'v' + visFrame;
+  var args = vidArg.split(',');
+  switch ( args[0] ) {
     case 'pause':
-      document.getElementById('v'+visFrame).pause();
+      document.getElementById( vf ).pause();
       break;
     case 'play':
-      document.getElementById('v'+visFrame).play();
+      document.getElementById( vf).play();
       break;
     case 'rewind':
-      document.getElementById('v'+visFrame).pause();
-      document.getElementById('v'+visFrame).currentTime = 0.1;
+      document.getElementById( vf ).pause();
+      document.getElementById( vf ).currentTime = 0.1;
       break;
     case 'mute':
-      document.getElementById('v'+visFrame).volume = 0.0;
+      document.getElementById( vf ).volume = 0.0;
       break;
     case 'unmute':
       if (!CONFIG.mute) {
-        document.getElementById('v'+visFrame).volume = 1.0;
+        document.getElementById( vf ).volume = 1.0;
       }
       break;
     case 'slow':
-      document.getElementById('v'+visFrame).playbackRate = 0.8;
+      document.getElementById( vf ).playbackRate = 0.8;
       break;
     case 'normal':
-      document.getElementById('v'+visFrame).playbackRate = 1.0;
+      document.getElementById( vf ).playbackRate = 1.0;
+      break;
+    case 'time':
+      console.log('time:'+args[1]);
+      document.getElementById( vf ).currentTime = args[1];
       break;
     default:
       console.log('unknown video control command');
