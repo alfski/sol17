@@ -1,6 +1,6 @@
 <html>
 <head>
-<script type="text/javascript" src="config.js?"></script>
+<script type="text/javascript" src="config.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/reconnecting-websocket.min.js"></script>
 <script type="text/javascript">
@@ -173,11 +173,12 @@ body { background-color: black; }
 <input type="button" value="Normal Speed" onclick="sendVideoControl('normal');" /> --!>
 </form>
 <hr width=40%>
-<input type="button" value="SWAP FRAMES" onclick="sendSwap(0);" />
+<input type="button" value="[[ SWAP FRAMES ]]" onclick="sendSwap(0);" />
 <input type="button" value="FLUSH" onclick="sendFlush();" />
-<input type="button" value="PING" onclick="sendPing();" />
 <input type="button" value="Reload Clients" onclick="sendReload();" />
 <br/><br/>
+<input type="button" value="PING" onclick="sendPing();" />
+<input type="button" value="Show Config" onclick="socketSend('SHOWCONFIG');" />
 <input type='button' value='Relay Not OK' style='background-color:#ff8080' id='RelayStatus' />
 <pre><div id="config"></div></pre>
 </div>
