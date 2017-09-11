@@ -191,9 +191,9 @@ function handleReceiveState( json ) {
   //console.log('sent state:' + JSON.stringify( newState ));
   //console.log('curr state:' + JSON.stringify( state ));
   if (recvdState.current == state.current) {
-    onsole.log('state samesies');
+    console.log('state samesies');
   } else {
-    onsole.log('current state is different');
+    console.log('current state is different');
     handleMesg( recvdState.current );
     window.setTimeout( function() {
       handleSwap();
