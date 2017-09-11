@@ -208,6 +208,7 @@ function handleReceiveState( json ) {
 function handleURL( url ) {
   hidFrame = 'iFrame' + getNextFrameId( visFrame );
   console.log("URL "+ url + " into " + hidFrame );
+  // sanity check URL?
   document.getElementById( hidFrame ).src = url;
   state.buffer = 'URL,' + url;
 }
@@ -220,6 +221,7 @@ function getNextFrameId( frame ) { // if iframe1 return 0
 
 function handleHTML( html ) {
   hidFrame = 'htmlFrame' + getNextFrameId( visFrame );
+  // sanity check HTML?
   console.log("HTML "+ html + " into " + hidFrame );
   document.getElementById( hidFrame ).innerHTML = html;
   state.buffer = 'HTML,' + html;
@@ -233,6 +235,7 @@ function handleImage( image ) {
 function handleColor( rgb ) {
   console.log( 'handle set solid Color' );
   handleHTML( '' );
+  // sanity check rgb value?
   document.getElementById( hidFrame ).style.backgroundColor = rgb;
 }
 
